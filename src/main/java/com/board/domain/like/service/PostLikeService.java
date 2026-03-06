@@ -31,10 +31,11 @@ public class PostLikeService {
         Member member = memberRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        Optional<PostLike> existingLike = postLikeRepository.findByPostIdAndMemberId(postId, userDetails.getId());
+        PostLike existingLike = postLikeRepository.findByPostIdAndMemberId(postId, userDetails.getId())
+                                .orElse(null);
 
-        if (existingLike.isPresent()) {
-            postLikeRepository.delete(existingLike.get());
+        if (existingLike != null) {
+            postLikeRepository.delete(existingLike);
             post.decreaseLikeCount();
             return "좋아요가 취소되었습니다.";
         } else {
