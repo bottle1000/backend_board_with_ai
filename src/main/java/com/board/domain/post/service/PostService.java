@@ -45,7 +45,7 @@ public class PostService {
     }
 
     public Page<PostResponse> getPosts(Pageable pageable) {
-        return postRepository.findAll(pageable).map(PostResponse::from);
+        return postRepository.findAllWithMember(pageable).map(PostResponse::from);
     }
 
     public Page<PostResponse> searchPosts(String keyword, Pageable pageable) {
