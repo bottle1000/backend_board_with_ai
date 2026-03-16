@@ -11,7 +11,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "post_likes")
+@Table(
+    name = "post_likes",
+    indexes = @Index(name = "idx_post_likes_post_member", columnList = "post_id, member_id")
+)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostLike {
