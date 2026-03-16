@@ -1,0 +1,14 @@
+# 로컬 개발 환경 전용 설정
+# [Fix] SQL 로그 및 파라미터 바인딩 로그는 로컬에서만 활성화
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+logging:
+  level:
+    com.board: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE

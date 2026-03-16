@@ -1,27 +1,51 @@
 spring:
+  profiles:
+    active: local
+
   datasource:
-    url: jdbc:mysql://localhost:3306/board_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-    username: root
-    password: Qudcjs5027!
+    url: jdbc:mysql://${DB_HOST:localhost}:3306/board_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    # [Fix] 크리덴셜 평문 하드코딩 제거 → 환경변수 주입으로 변경
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
+    # [Add] HikariCP 커넥션 풀 명시적 설정 (기본값 max 10에서 조정)
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 3000
+      idle-timeout: 600000
+      max-lifetime: 1800000
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    # [Fix] 운영 기준 기본값: SQL 로그 OFF (로컬은 application-local.yml에서 ON)
+    show-sql: false
+    # [Add] OSIV 명시적 비활성화 → 불필요한 DB 세션 누수 방지
+    open-in-view: false
     properties:
       hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: false
 
+# [Fix] JWT secret 환경변수화
 jwt:
-  secret: board-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm
+  secret: ${JWT_SECRET:board-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-algorithm}
   expiration-ms: 86400000  # 24시간
 
 server:
   port: 8080
 
+# [Add] Actuator 노출 범위 명시적 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, prometheus, metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+
 logging:
   level:
-    org.hibernate.SQL: debug
-    org.hibernate.orm.jdbc.bind: trace
+    root: INFO
+    com.board: INFO

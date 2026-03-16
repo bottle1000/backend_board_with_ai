@@ -13,6 +13,7 @@ build/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+/src/main/resources/application.yml
 
 # Eclipse
 .apt_generated
@@ -40,6 +41,9 @@ logs/
 # Sensitive config
 application-prod.yml
 application-prod.properties
+
+# 환경변수 파일 (DB 비밀번호 등 민감 정보)
+.env
 
 # Compiled class files
 *.class
