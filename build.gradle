@@ -48,10 +48,20 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
+    // Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Prometheus
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    // [Add] ELK 구조화 JSON 로깅 - Grok 파싱 불필요하게 만들어줌
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 }
 
 tasks.named('test') {
