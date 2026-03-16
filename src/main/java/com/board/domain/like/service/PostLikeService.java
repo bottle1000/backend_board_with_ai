@@ -26,7 +26,7 @@ public class PostLikeService {
     // 동시성 제어 없음 — 의도적으로 race condition 허용 (동시성 테스트용)
     @Transactional
     public String toggleLike(Long postId, CustomUserDetails userDetails) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdWithLock(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
         Member member = memberRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
