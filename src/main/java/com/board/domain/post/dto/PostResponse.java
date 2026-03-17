@@ -3,10 +3,11 @@ package com.board.domain.post.dto;
 import com.board.domain.post.entity.Post;
 import lombok.Getter;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Getter
-public class PostResponse {
+public class PostResponse implements Serializable {
 
     private Long id;
     private String title;

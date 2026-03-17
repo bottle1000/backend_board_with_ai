@@ -11,6 +11,8 @@ import com.board.global.exception.CustomException;
 import com.board.global.exception.ErrorCode;
 import com.board.global.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -25,6 +27,7 @@ public class PostService {
     private final MemberRepository memberRepository;
 
     @Transactional
+    @CacheEvict(value = "post", allEntries = true)
     public PostResponse createPost(CustomUserDetails userDetails, PostCreateRequest request) {
         Member member = memberRepository.findById(userDetails.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -38,6 +41,8 @@ public class PostService {
         return PostResponse.from(postRepository.save(post));
     }
 
+    // 단건 조회만 캐싱 → "post::1", "post::2" 형태로 저장
+    @Cacheable(value = "post", key = "#postId")
     public PostResponse getPost(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
@@ -53,6 +58,7 @@ public class PostService {
     }
 
     @Transactional
+    @CacheEvict(value = "post", key = "#postId")
     public PostResponse updatePost(Long postId, CustomUserDetails userDetails, PostUpdateRequest request) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
@@ -66,6 +72,7 @@ public class PostService {
     }
 
     @Transactional
+    @CacheEvict(value = "post", key = "#postId")
     public void deletePost(Long postId, CustomUserDetails userDetails) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomException(ErrorCode.POST_NOT_FOUND));
