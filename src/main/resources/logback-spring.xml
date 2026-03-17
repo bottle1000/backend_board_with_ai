@@ -4,73 +4,33 @@
     <property name="LOG_DIR" value="./logs"/>
     <property name="LOG_FILE_NAME" value="board-api"/>
 
-    <!-- ======================== Appender 정의 ======================== -->
-
-    <!-- 로컬 전용: 가독성을 위한 컬러 콘솔 출력 -->
+    <!-- 콘솔 출력 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder charset="UTF-8">
-            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %highlight(%-5level) [%X{traceId:-}] %cyan(%logger{36}) : %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{traceId:-}] %logger{36} : %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!--
-        운영 전용: ELK를 위한 JSON 파일 출력
-        [Fix] 일반 텍스트 → LogstashEncoder(JSON) 로 변경
-              Grok 파싱 없이 Logstash가 바로 Elasticsearch로 전송 가능
-        [Add] totalSizeCap: 30일치 로그의 디스크 상한선 설정
-    -->
-    <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!-- 파일 출력 (날짜별 롤링) -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_DIR}/${LOG_FILE_NAME}.log</file>
-        <encoder class="net.logstash.logback.encoder.LogstashEncoder" charset="UTF-8">
-            <!-- MDC의 traceId 등 모든 필드 자동 포함 -->
-            <includeContext>false</includeContext>
-            <fieldNames>
-                <timestamp>@timestamp</timestamp>
-                <message>message</message>
-                <logger>logger</logger>
-                <thread>thread</thread>
-                <level>level</level>
-            </fieldNames>
+        <encoder charset="UTF-8">
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{traceId:-}] %logger{36} : %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
-            <maxHistory>30</maxHistory>
-            <!-- [Add] 전체 용량 상한 3GB -->
-            <totalSizeCap>3GB</totalSizeCap>
+            <fileNamePattern>${LOG_DIR}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
         </rollingPolicy>
     </appender>
 
-    <!--
-        [Add] AsyncAppender: JSON_FILE을 비동기로 감쌈
-              요청 스레드가 디스크 I/O를 직접 기다리지 않음
-              queueSize=2048: 최대 2048개 로그 이벤트 버퍼링
-              discardingThreshold=0: 큐가 가득 차도 로그 버리지 않음
-    -->
-    <appender name="ASYNC_JSON_FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>2048</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-        <includeCallerData>false</includeCallerData>
-        <appender-ref ref="JSON_FILE"/>
-    </appender>
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
 
-    <!-- ======================== 환경별 로그 레벨 설정 ======================== -->
+    <logger name="com.board" level="DEBUG"/>
 
-    <!-- 로컬 환경: 콘솔만 사용 -->
-    <springProfile name="local">
-        <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
-        </root>
-        <!-- [Fix] com.board DEBUG를 local 프로파일 안에만 적용 (prod DEBUG 누수 방지) -->
-        <logger name="com.board" level="DEBUG"/>
-    </springProfile>
-
-    <!-- 운영 환경: 콘솔 + 비동기 JSON 파일 -->
-    <springProfile name="prod">
-        <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
-            <appender-ref ref="ASYNC_JSON_FILE"/>
-        </root>
-        <logger name="com.board" level="INFO"/>
-    </springProfile>
+    <!-- SQL 로그를 파일(Logstash)까지 전달 -->
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
 
 </configuration>
